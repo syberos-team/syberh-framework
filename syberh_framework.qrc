@@ -1,0 +1,6 @@
+
+<RCC>
+    <qresource prefix="/syberh/framework">
+        <file>qmldir</file>
+    </qresource>
+</RCC>
