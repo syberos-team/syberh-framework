@@ -1,17 +1,20 @@
 <RCC>
     <qresource prefix="/com/syberos/api">
-
+        <file>js/camera/capture.js</file>
         <file>js/core/core.js</file>
         <file>js/core/plugin.js</file>
-
-
+        <file>js/filepicker/filepicker.js</file>
+        <file>js/modal/alert.js</file>
+        <file>js/modal/confirm.js</file>
+        <file>js/modal/prompt.js</file>
+        <file>js/modal/toast.js</file>
         <file>js/root/root.js</file>
-
+        <file>js/system/system.js</file>
         <file>js/util/polyfill.js</file>
         <file>js/util/tool.js</file>
         <file>js/webview/webview.js</file>
         <file>js/config.js</file>
-
+        <file>js/readme.md</file>
         <file>js/syber.js</file>
         <file>qml/CMenu/pics/endHandle.png</file>
         <file>qml/CMenu/pics/menuBg.png</file>
@@ -31,12 +34,13 @@
         <file>qml/default/CPhotoTranslate/CPhotoTranslate.qml</file>
         <file>qml/default/CPhotoTranslate/qmldir</file>
         <file>qml/root.qml</file>
-
-
+        <file>qml/SAlert.qml</file>
+        <file>qml/SButton.qml</file>
+        <file>qml/SCamera.qml</file>
         <file>qml/SCheckGridView.qml</file>
         <file>qml/SCheckViewModel.qml</file>
         <file>qml/SCollisionIndicator.qml</file>
-
+        <file>qml/SConfirm.qml</file>
         <file>qml/SDelegateComponent.qml</file>
         <file>qml/SEditTitleBar.qml</file>
         <file>qml/SFilesPicker.qml</file>
@@ -62,11 +66,11 @@
         <file>qml/ItemSelector.qml</file>
         <file>qml/SSelectTool.qml</file>
         <file>js/util/log.js</file>
-
+        <file>js/image/chooseImage.js</file>
         <file>qml/SChooseImage.qml</file>
         <file>qml/SWebview.qml</file>
         <file>qml/SPage.qml</file>
- 
+        <file>js/image/previewImage.js</file>
         <file>qml/SPreviewImage.qml</file>
         <file>qml/SPhotoPreviewModel.qml</file>
         <file>res/switch.png</file>
@@ -74,7 +78,7 @@
         <file>res/save.png</file>
         <file>res/backCapture.png</file>
         <file>res/back.png</file>
-
+        <file>js/modal/gtoast.js</file>
         <file>qml/BSelectTool.qml</file>
         <file>qml/qmldir</file>
     </qresource>
