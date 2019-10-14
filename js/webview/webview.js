@@ -271,6 +271,10 @@ function WebView (options) {
       logger.verbose('webview:[%s] on redirectTo', that.id, JSON.stringify(param))
       var url = getUrl(param.url)
       currentWebview.object.openUrl(url)
+      //title处理示例
+      if (param.title) {
+        currentWebview.object.setTitle(param.title);
+      }
       currentWebview.trigger('success', handlerId, true)
       if (handlerId) {
         that.trigger('success',
