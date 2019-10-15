@@ -6,6 +6,7 @@ import com.syberos.filemanager.filepicker 1.0
 import org.nemomobile.voicecall 1.0
 import com.syberos.basewidgets 1.0
 import com.syberos.basewidgets 2.0
+import syberh_filepicker 1.0
 
 import "../js/util/log.js" as LOG
 import "./"
@@ -221,6 +222,7 @@ CPage{
                 }
             }
 
+            // syberh_filepicker包里面引入
             experimental.filePicker: SFilesPicker {
                 id: picker
                 titleText: "文件选择"
