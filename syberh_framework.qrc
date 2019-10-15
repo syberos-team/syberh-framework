@@ -79,7 +79,6 @@
         <file>qml/BSelectTool.qml</file>
         <file>qml/SNavigationBar.qml</file>
         <file>qml/qmldir</file>
-        <file>js/readme.html</file>
         <file>qml/AuthenticationDialog.qml</file>
         <file>qml/ColorChooser.qml</file>
         <file>qml/ScrollIndicator.qml</file>
