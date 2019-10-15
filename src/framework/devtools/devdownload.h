@@ -1,5 +1,5 @@
-#ifndef DOWNLOADMANAGER_H
-#define DOWNLOADMANAGER_H
+#ifndef DEVDOWNLOAD_H
+#define DEVDOWNLOAD_H
 
 #include <QObject>
 #include <QNetworkAccessManager>
@@ -7,7 +7,7 @@
 #include <QUrl>
 #include "cstoragemanager.h"
 
-class DownloadManager : public QObject
+class DevDownload : public QObject
 {
     Q_OBJECT
 public:
@@ -17,8 +17,8 @@ public:
         Extended
     };
 
-    explicit DownloadManager(QObject *parent = 0);
-    ~DownloadManager();
+    explicit DevDownload(QObject *parent = 0);
+    ~DevDownload();
 
     // 设置是否支持断点续传
     void setDownInto(bool isSupportBreakPoint);
@@ -40,9 +40,9 @@ public:
     //设置downloadId
     void setDownloadId(QString downloadId);
     //设置存储位置
-    void setStorage(DownloadManager::Storage storage);
+    void setStorage(DevDownload::Storage storage);
 
-    DownloadManager::Storage getStorage();
+    DevDownload::Storage getStorage();
 
     QString getDownloadId();
 
@@ -96,4 +96,4 @@ public slots:
     void onError(QNetworkReply::NetworkError code);
 };
 
-#endif // DOWNLOADMANAGER_H
+#endif // DEVDOWNLOAD_H

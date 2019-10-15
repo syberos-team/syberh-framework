@@ -77,6 +77,7 @@
         <file>res/back.png</file>
         <file>js/modal/gtoast.js</file>
         <file>qml/BSelectTool.qml</file>
+         <file>qml/SNavigationBar.qml</file>
         <file>qml/qmldir</file>
         <file>js/readme.html</file>
         <file>qml/AuthenticationDialog.qml</file>
