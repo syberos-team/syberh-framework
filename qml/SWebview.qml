@@ -116,16 +116,16 @@ CPage{
     contentAreaItem:Rectangle{
         id:root
         anchors.fill:parent
-        SNavigationBar{
-            id:navigationBar
-        }
+//        SNavigationBar{
+//            id:navigationBar
+//        }
         WebView {
             id: swebview
             focus: true
             signal downLoadConfirmRequest
             property url curHoverUrl: ""
             anchors {
-                top: navigationBar.bottom
+                top: parent.top // navigationBar.bottom
                 left: parent.left
                 right: parent.right
                 bottom: parent.bottom
