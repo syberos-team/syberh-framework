@@ -84,5 +84,7 @@
         <file>syberh_framework.pri</file>
         <file>syberh_framework.qrc</file>
         <file>qml/filesPicker.qml</file>
+        <file>res/navClose.png</file>
+        <file>res/navBack.png</file>
     </qresource>
 </RCC>
