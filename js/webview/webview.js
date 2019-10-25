@@ -11,7 +11,7 @@ function WebView (options) {
     name: 'webview',
     module: 'router',
     //source: '../qml/SWebview.qml',
-    methods: ['reload', 'goBack', 'redirectTo', 'navigateTo', 'navigateBack', 'getCurrentPages', 'reLaunch','setTitle'],
+    methods: ['reload', 'goBack', 'redirectTo', 'navigateTo', 'navigateBack', 'getCurrentPages', 'reLaunch','setTitle','setBackgroundColor'],
     autoCreate: true
   }
   if (options) {
@@ -223,6 +223,20 @@ function WebView (options) {
     that.trigger('success', handlerId, true)
   })
 
+
+  //设置背景色
+  this.on('setBackgroundColor', function (object, handlerId, param) {
+      logger.verbose('Webivew:[%s] , on setBackgroundColor() ,param:%s ,', that.id, JSON.stringify(param))
+      console.log('Webivew:[%s] , on setBackgroundColor() ,param:%s ,', that.id, JSON.stringify(param))
+
+      param.color = param.color.trim()
+      if (!param.color) {
+          that.trigger('failed', handlerId, 9001, "color不能为空")
+          return
+      }
+      object.setBackgroundColor(param.color);
+      that.trigger('success', handlerId, true)
+  })
   // 保留当前页面，跳转到某个页面
   this.on('navigateBack', function (object, handlerId, param) {
     logger.verbose('Webview:[%s],on navigateBack() start', that.id)
