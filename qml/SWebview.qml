@@ -35,6 +35,14 @@ CPage{
     // 导航栏标题
     property string navigationBarTitle: ""
 
+    //背景色
+    property string color: ""
+
+    //设置背景色
+    function setBackgroundColor(color){
+        root.color = color;
+    }
+
     // 展示navigatorBar
     function showNavigatorBar(title){
        sNavigationBar.show(title);
