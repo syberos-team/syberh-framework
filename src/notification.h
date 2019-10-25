@@ -1,7 +1,6 @@
 #ifndef MESSAGENOTIFICATION_H
 #define MESSAGENOTIFICATION_H
 
-
 #include "cbadge.h"
 #include "cnotification.h"
 #include "cnotificationmanager.h"
@@ -30,21 +29,26 @@ private :
     /**
      * @brief sendNotification 消息发送
      * @param params 参数
-     * @return 成功则无返回。
+     * @return 成功则消息id。
      *      失败则返回错误码。
      */
     void sendNotification(long callBackID, QVariantMap params);
 
     /**
-     * @brief removeNotification 删除消息
+     * @brief removeAllNotifications 删除消息
+     * @param params 参数
+     * @return 成功则无返回。
+     *      失败则返回错误码。
+     */
+    void removeAllNotifications(long callBackID, QVariantMap params);
+
+    /**
+     * @brief removeNotification 删除指定消息
      * @param params 参数
      * @return 成功则无返回。
      *      失败则返回错误码。
      */
     void removeNotification(long callBackID, QVariantMap params);
-
-    CBadge *badge;
-    CNotificationManager *notificationManager;
 
     static int typeId;
 };
