@@ -31,10 +31,19 @@ Rectangle {
     property real titleFontSize: 52 * scaleFactor
 
     // 标题文字
-    property string titleText: ""
+    property string navigationBarTitle: ""
 
-    // 左侧返回icon是否展示
-    property bool leftIconShow: true
+    // 导航栏背景色
+    property string navigationBarColor: "#ffffff"
+
+    // 导航栏字体颜色
+    property string navigationBarTextColor: "#000000"
+
+    // 返回按钮是否展示
+    property bool navigationBarBackIconEnable: true
+
+    // 关闭按钮是否展示
+    property bool navigationBarCloseIconEnable: true
 
     // 是否需要关闭当前webview且history.length>1 (从SWebview中canGoBack返回)
     property bool closeCurWebviewEnable: false
@@ -49,18 +58,39 @@ Rectangle {
     signal closeCurWebview()
 
     // 显示导航栏
-    function show(title){
+    function show(options){
         console.log("navigationBar show",title);
         navigationBar.visible = true;
-        if(title){
-          setTitle(title);
-        }
+        setNavigationBar(options)
     }
 
     // 设置标题
     function setTitle(title) {
-        console.log('navigationBar title',title,typeof title)
-        titleText = qsTr(title)
+        console.log('navigationBar title', title)
+        navigationBarTitle = qsTr(title)
+    }
+
+    // 设置导航栏背景色
+    function setColor(color) {
+        console.log('navigationBar color', color)
+        navigationBarColor = qsTr(color)
+    }
+
+    // 设置导航栏背景色
+    function setTextColor(color) {
+        console.log('navigationBar color', color)
+        navigationBarTextColor = qsTr(color)
+    }
+
+    // 设置导航栏参数
+    function setNavigationBar(options) {
+        console.log('options', JSON.stringify(options))
+        sNavigationBar.navigationBarTitle = options.navigationBarTitle
+        sNavigationBar.navigationBarTextColor = options.navigationBarTextColor
+        sNavigationBar.navigationBarColor = options.navigationBarColor
+        sNavigationBar.navigationBarCloseIconEnable = options.navigationBarCloseIconEnable
+        sNavigationBar.navigationBarBackIconEnable = options.navigationBarBackIconEnable
+        console.log('navigationBarTitle--', navigationBarTitle)
     }
 
     height: navigationBarHeight
@@ -70,20 +100,23 @@ Rectangle {
         id: controlsRow
         height: navigationBarHeight
         width: parent.width
+        color: navigationBarColor
 
         // 导航栏下面的分界线
         Rectangle {
+            id: line
             width: parent.width
             height: 1
             anchors.top: parent.top
-            anchors.topMargin: navigationBarHeight - 2
+            anchors.topMargin: navigationBarHeight - line.height
             color: '#B5B5B5'
             z: 999
         }
 
         Rectangle {
             id: backButton
-            visible: leftIconShow
+            visible: navigationBarBackIconEnable
+            color: navigationBarColor
             height: parent.height
             // 给元素扩大位置, 方便点击
             width: iconHeight + leftIconMargin * 2
@@ -101,9 +134,9 @@ Rectangle {
             MouseArea {
                 anchors.fill: parent
                 // 鼠标按下变颜色
-                onPressed: { parent.color = "#cfcfcf" }
+                onPressed: { parent.opacity = 0.9 }
                 // 鼠标谈起恢复
-                onReleased: { parent.color = "#efefef" }
+                onReleased: { parent.opacity = 1 }
                 onClicked: {               
                     console.log("MiniBrowser: Going backward in session history.")
                     // 发信号给SWebview
@@ -114,7 +147,8 @@ Rectangle {
 
         Rectangle {
             id: closeButton
-            visible: closeCurWebviewEnable
+            visible: navigationBarCloseIconEnable && closeCurWebviewEnable
+            color: navigationBarColor
             height: parent.height
             // 给元素扩大位置, 方便点击
             width: iconHeight + leftIconMargin * 2
@@ -131,8 +165,10 @@ Rectangle {
 
             MouseArea {
                 anchors.fill: parent
-                onPressed: { if (parent.enabled) parent.color = "#cfcfcf" }
-                onReleased: { parent.color = "#efefef" }
+                // 鼠标按下变颜色
+                onPressed: { if (parent.enabled) parent.opacity = 0.9 }
+                // 鼠标谈起恢复
+                onReleased: { parent.opacity = 1 }
                 onClicked: {
                     console.log("MiniBrowser: closeCurWebview.")
                     closeCurWebview()
@@ -145,12 +181,9 @@ Rectangle {
             id:navigationBarText
             anchors.centerIn: parent
             font.pixelSize: titleFontSize
-            text: titleText
+            color: navigationBarTextColor
+            text: navigationBarTitle
         }
-
-
     }
-
-
 
 }
