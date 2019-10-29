@@ -38,6 +38,9 @@ CPage{
     // 导航栏标题
     property string navigationBarTitle: ""
 
+    // 标题文字居中居左 (日后使用)
+//    property string navigationBarTitlePosition: ""
+
     // 导航栏背景色
     property string navigationBarColor: ""
 
@@ -430,7 +433,7 @@ CPage{
             setBackgroundColor(color)
         }
 
-        if (navigationBarTitle || navigationBarColor || navigationBarTextColor) {
+        if (navigationBarTitle) {
             showNavigatorBar({
                 navigationBarTitle: navigationBarTitle,
                 navigationBarColor: navigationBarColor,

@@ -33,11 +33,14 @@ Rectangle {
     // 标题文字
     property string navigationBarTitle: ""
 
+    // 标题文字居中居左
+//    property string navigationBarTitlePosition: "center"
+
     // 导航栏背景色
-    property string navigationBarColor: "#ffffff"
+    property string navigationBarColor: ""
 
     // 导航栏字体颜色
-    property string navigationBarTextColor: "#000000"
+    property string navigationBarTextColor: ""
 
     // 返回按钮是否展示
     property bool navigationBarBackIconEnable: true
@@ -90,7 +93,10 @@ Rectangle {
         sNavigationBar.navigationBarColor = options.navigationBarColor
         sNavigationBar.navigationBarCloseIconEnable = options.navigationBarCloseIconEnable
         sNavigationBar.navigationBarBackIconEnable = options.navigationBarBackIconEnable
+//        sNavigationBar.navigationBarTitlePosition = options.navigationBarTitlePosition
         console.log('navigationBarTitle--', navigationBarTitle)
+        console.log('navigationBarColor--', navigationBarColor)
+        console.log('navigationBarTextColor--', navigationBarTextColor)
     }
 
     height: navigationBarHeight
@@ -179,10 +185,17 @@ Rectangle {
         // 标题
         Text {
             id:navigationBarText
-            anchors.centerIn: parent
             font.pixelSize: titleFontSize
             color: navigationBarTextColor
             text: navigationBarTitle
+            anchors.centerIn: parent
+
+//            anchors.verticalCenter: parent.verticalCenter
+//            anchors.verticalCenterOffset: 0
+//            anchors.horizontalCenter: navigationBarTitlePosition === "left" ? undefined : parent.horizontalCenter
+//            anchors.left: navigationBarTitlePosition === "left" ? (closeButton.visible ? closeButton.right : (backButton.visible ? backButton.right : parent.left)) : undefined
+//            anchors.leftMargin: 10
+
         }
     }
 

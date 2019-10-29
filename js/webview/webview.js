@@ -263,7 +263,7 @@ function WebView (options) {
     param.color = param.color.trim()
     param.textColor = param.textColor.trim()
 
-    if (!param.color || !param.textColor) {
+    if (!param.color && !param.textColor) {
         that.trigger('failed', handlerId, 9001, "参数不能为空")
         return
     }
@@ -342,9 +342,8 @@ function WebView (options) {
   // 保留当前页面，跳转到某个页面
   this.on('navigateTo', function (object, handlerId, param) {
     console.log('webview:[%s] on navigateTo', that.id, JSON.stringify(param))
-//    logger.verbose('webview:[%s] on navigateTo', that.id, JSON.stringify(param))
-//    logger.verbose('navigateTo swebviews:[%d]', swebviews.length)
-//    logger.verbose('webviewdepth:[%d]', webviewdepth)
+    console.log('navigateTo swebviews:[%d]', swebviews.length)
+    console.log('webviewdepth:[%d]', webviewdepth)
     var dwevview = null
     // 如果已经是最大栈,则使用底层栈
     if (webviewdepth + 1 > webviewMaxDepth) {
@@ -372,21 +371,22 @@ function WebView (options) {
         surl: getUrl(param.url)
       };
 
-      // 拓展参数
-      if (param.webviewParams) {
-          for (var key in param.webviewParams) {
-            console.log('param-key-', key)
-            if (key === 'webviewColor') {
-              dwevview.param['color'] = param.webviewParams[key]
-              continue
-            }
+      // webview参数
+      if (param.webview) {
+          for (var key in param.webview) {
+              dwevview.param[key] = param.webview[key]
+          }
+          console.log('dwevview.param--', JSON.stringify(dwevview.param))
+      }
 
+      // navigationBar参数
+      if (param.navigationBar) {
+          for (var key in param.navigationBar) {
             var newKey = 'navigationBar' + key.substring(0,1).toUpperCase() + key.substring(1)
             console.log('newKey-', newKey)
-            console.log('param.webviewParams.key-', param.webviewParams[key])
-            dwevview.param[newKey] = param.webviewParams[key]
-            console.log('dwevview.param--', JSON.stringify(dwevview.param))
+            dwevview.param[newKey] = param.navigationBar[key]
           }
+          console.log('dwevview.param--', JSON.stringify(dwevview.param))
       }
 
       logger.verbose('webviewParams:[%s]', JSON.stringify(dwevview.param))
