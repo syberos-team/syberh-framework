@@ -1,4 +1,3 @@
-
 // 正常加载
 var WebviewStatusShow = 0;
 // 被pop打开
@@ -11,7 +10,7 @@ function WebView (options) {
     name: 'webview',
     module: 'router',
     // source: '../qml/SWebview.qml',
-    methods: ['reload', 'goBack', 'redirectTo', 'navigateTo', 'navigateBack', 'getCurrentPages', 'reLaunch', 'setTitle', 'setBackgroundColor'],
+    methods: ['reload', 'goBack', 'redirectTo', 'navigateTo', 'navigateBack', 'getCurrentPages', 'reLaunch', 'setTitle', 'setBackgroundColor', 'setNavigationBarColor'],
     autoCreate: true
   };
   if (options) {
@@ -194,7 +193,6 @@ function WebView (options) {
 
   // 给页面设置标题
   this.on('setTitle', function (object, handlerId, param) {
-    logger.verbose('Webivew:[%s] , on setTitle() ,param:%s ,', that.id, JSON.stringify(param));
     console.log('Webivew:[%s] , on setTitle() ,param:%s ,', that.id, JSON.stringify(param));
     console.log('---Webivew NavigationBar visible---', object.getNavigationBarStatus());
 
@@ -217,6 +215,60 @@ function WebView (options) {
     }
 
     object.setNavigationBarTitle(param.title);
+    that.trigger('success', handlerId, true);
+  });
+
+  // 设置标题
+  this.on('setTitle', function (object, handlerId, param) {
+    console.log('Webivew:[%s] , on setTitle() ,param:%s ,', that.id, JSON.stringify(param));
+    console.log('---Webivew NavigationBar visible---', object.getNavigationBarStatus());
+
+    // 导航栏visible为false，不让修改标题
+    if (!object.getNavigationBarStatus()) {
+      that.trigger('failed', handlerId, 9002, '页面未设置导航栏，无法更改导航栏属性');
+      return;
+    }
+
+    param.title = param.title.trim();
+
+    if (!param.title) {
+      that.trigger('failed', handlerId, 9001, 'title不能为空');
+      return;
+    }
+
+    if (param.title && param.title.length > 8) {
+      that.trigger('failed', handlerId, 9001, '标题最多8个汉字');
+      return;
+    }
+
+    object.setNavigationBarTitle(param.title);
+    that.trigger('success', handlerId, true);
+  });
+
+  // 设置导航栏颜色和字体颜色
+  this.on('setNavigationBarColor', function (object, handlerId, param) {
+    console.log('Webivew:[%s] , on setNavigationBarColor() ,param:%s ,', that.id, JSON.stringify(param));
+    console.log('---Webivew NavigationBar visible---', object.getNavigationBarStatus());
+
+    // 导航栏visible为false，不让修改标题
+    if (!object.getNavigationBarStatus()) {
+      that.trigger('failed', handlerId, 9002, '页面未设置导航栏，无法更改导航栏属性');
+      return;
+    }
+
+    param.color = param.color.trim();
+    param.textColor = param.textColor.trim();
+
+    if (!param.color && !param.textColor) {
+      that.trigger('failed', handlerId, 9001, '参数不能为空');
+      return;
+    }
+
+    object.setNavigationBarColor({
+      color: param.color,
+      textColor: param.textColor
+    });
+
     that.trigger('success', handlerId, true);
   });
 
@@ -310,9 +362,30 @@ function WebView (options) {
         page: true
       });
       dwevview.param = {
-        surl: getUrl(param.url),
-        navigationBarTitle: param.title
+        surl: getUrl(param.url)
       };
+
+      // webview参数
+      if (param.webview) {
+        for (var key in param.webview) {
+          dwevview.param[key] = param.webview[key];
+        }
+        console.log('dwevview.param--', JSON.stringify(dwevview.param));
+      }
+
+      // navigationBar参数
+      if (param.navigationBar) {
+        for (var key in param.navigationBar) {
+          var newKey = 'navigationBar' + key.substring(0, 1).toUpperCase() + key.substring(1);
+          console.log('newKey-', newKey);
+          dwevview.param[newKey] = param.navigationBar[key];
+        }
+        console.log('dwevview.param--', JSON.stringify(dwevview.param));
+      }
+
+      logger.verbose('webviewParams:[%s]', JSON.stringify(dwevview.param));
+      console.log('webviewParams:[%s]', JSON.stringify(dwevview.param));
+
       dwevview.currentUrl = param.url;
       SYBEROS.addPlugin(dwevview);
       // 设定webview的深度为2
