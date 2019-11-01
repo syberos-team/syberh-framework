@@ -15,12 +15,12 @@ Database::~Database(){}
 void Database::request(QString callBackID, QString actionName, QVariantMap params){
   if (actionName == "createTable"){
       createTable(callBackID.toLong(), params);
-  }else if (actionName == "selectOperate"){
-      selectOperate(callBackID.toLong(), params);
-  }else if (actionName == "execOperate"){
-      execOperate(callBackID.toLong(), params);
-  }else if (actionName == "isDataExists"){
-      isDataExists(callBackID.toLong(), params);
+  }else if (actionName == "query"){
+      query(callBackID.toLong(), params);
+  }else if (actionName == "execute"){
+      execute(callBackID.toLong(), params);
+  }else if (actionName == "isDatabaseExists"){
+      isDatabaseExists(callBackID.toLong(), params);
   }else if (actionName == "isTableExists"){
       isTableExists(callBackID.toLong(), params);
   }
@@ -93,7 +93,7 @@ void Database::createTable(long callBackID, QVariantMap params){
     emit success(callBackID, true);
 }
 
-void Database::selectOperate(long callBackID, QVariantMap params){
+void Database::query(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "selectOperate" << params << endl;
     QString databaseName = params.value("databaseName").toString();//数据库名
     QString sqlQuery = params.value("sql").toString();
@@ -142,7 +142,7 @@ void Database::selectOperate(long callBackID, QVariantMap params){
     emit success(callBackID, QVariant(jsonArr));
 }
 
-void Database::execOperate(long callBackID, QVariantMap params){
+void Database::execute(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "selectOperate" << params << endl;
     QString databaseName = params.value("databaseName").toString();//数据库名
     QString sqlQuery = params.value("sql").toString();
@@ -182,7 +182,7 @@ void Database::execOperate(long callBackID, QVariantMap params){
     emit success(callBackID, true);
 }
 
-void Database::isDataExists(long callBackID, QVariantMap params){
+void Database::isDatabaseExists(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "isDataExists" << params << endl;
     QString databaseName = params.value("databaseName").toString();//数据库名
 

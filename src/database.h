@@ -23,29 +23,29 @@ public:
     void createTable(long callBackID, QVariantMap params);
 
     /**
-     * @brief selectOperate 执行查询sql
+     * @brief query 执行查询sql
      *
      * @param params 参数
      * @return 成功则返回数据。
      *      失败则返回错误码。
      */
-    void selectOperate(long callBackID, QVariantMap params);
+    void query(long callBackID, QVariantMap params);
 
     /**
-     * @brief execOperate 执行操作sql
+     * @brief execute 执行操作sql
      * @param params 参数
      * @return 成功则返回true。
      *      失败则返回错误码。
      */
-    void execOperate(long callBackID, QVariantMap params);
+    void execute(long callBackID, QVariantMap params);
 
     /**
-     * @brief isDataExists 判断数据库是否存在
+     * @brief isDatabaseExists 判断数据库是否存在
      * @param params 参数
      * @return 成功则返回true。
      *      失败则返回错误码。
      */
-    void isDataExists(long callBackID, QVariantMap params);
+    void isDatabaseExists(long callBackID, QVariantMap params);
 
     /**
      * @brief isTableExists 判断表是否存在
