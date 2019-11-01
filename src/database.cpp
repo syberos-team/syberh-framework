@@ -137,7 +137,7 @@ void Database::query(long callBackID, QVariantMap params){
         QJsonObject jsonObj;
         rec = query.record();
         for(int i = 0 ; i<rec.count(); ++i){
-            jsonObj.insert(rec.fieldName(i), rec.value(i).toString());
+            jsonObj.insert(rec.fieldName(i), QJsonValue::fromVariant(rec.value(i)));
         }
         jsonArr.append(jsonObj);
     }
