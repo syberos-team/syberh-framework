@@ -37,7 +37,8 @@ HEADERS += \
     $$PWD/src/vibrator.h \
     $$PWD/src/framework/devtools/devdownload.h \
     $$PWD/src/util/validator.h \
-    $$PWD/src/notification.h
+    $$PWD/src/notification.h \
+    $$PWD/src/database.h
 
 SOURCES += \
     $$PWD/src/framework/nativesdkmanager.cpp \
@@ -74,4 +75,5 @@ SOURCES += \
     $$PWD/src/vibrator.cpp \
     $$PWD/src/framework/devtools/devdownload.cpp \
     $$PWD/src/util/validator.cpp \
-    $$PWD/src/notification.cpp
+    $$PWD/src/notification.cpp \
+    $$PWD/src/database.cpp
