@@ -77,16 +77,19 @@ void Database::createTable(long callBackID, QVariantMap params){
     if (! query.exec(sql)) {
         qDebug() << Q_FUNC_INFO << "执行sql失败:" << query.lastError();
         emit failed(callBackID, ErrorInfo::databaseError, "数据库错误:创建表失败");
+        myConnection.close();
         return;
      }
 
-    //执行创建索引sql
-    if (! query.exec(sqlindex)) {
-        qDebug() << Q_FUNC_INFO << "执行sql失败:" << query.lastError();
-        emit failed(callBackID, ErrorInfo::databaseError, "数据库错误:创建索引失败");
-        return;
+     if(!databaseName.isEmpty()){
+        //执行创建索引sql
+        if (! query.exec(sqlindex)) {
+            qDebug() << Q_FUNC_INFO << "执行sql失败:" << query.lastError();
+            emit failed(callBackID, ErrorInfo::databaseError, "数据库错误:创建索引失败");
+            myConnection.close();
+            return;
+        }
     }
-
     //关闭数据库
     myConnection.close();
     qDebug() << Q_FUNC_INFO << "createTable:result" << true << endl;
@@ -124,6 +127,7 @@ void Database::query(long callBackID, QVariantMap params){
     if (!query.exec(sqlQuery)) {
         qDebug() << Q_FUNC_INFO << "查询数据失败,error:" << query.lastError();
         emit failed(callBackID, ErrorInfo::databaseError, "数据库错误:查询数据失败");
+        myConnection.close();
         return;
     }
 
@@ -174,6 +178,7 @@ void Database::execute(long callBackID, QVariantMap params){
     if (!query.exec(sqlQuery)) {
         qDebug() << Q_FUNC_INFO << "操作失败,error:" << query.lastError();
         emit failed(callBackID, ErrorInfo::databaseError, "数据库错误:操作失败");
+        myConnection.close();
         return;
     }
 
@@ -241,6 +246,7 @@ void Database::isTableExists(long callBackID, QVariantMap params){
     if (!query.exec(sqlQuery)) {
         qDebug() << Q_FUNC_INFO << "表不存在,error:" << query.lastError();
         emit failed(callBackID, ErrorInfo::databaseError, "数据库错误:表不存在");
+        myConnection.close();
         return;
     }
 
