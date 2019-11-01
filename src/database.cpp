@@ -20,7 +20,7 @@ void Database::request(QString callBackID, QString actionName, QVariantMap param
   }else if (actionName == "execOperate"){
       execOperate(callBackID.toLong(), params);
   }else if (actionName == "isDataExists"){
-      isDataExists(callBackID.toLong());
+      isDataExists(callBackID.toLong(), params);
   }else if (actionName == "isTableExists"){
       isTableExists(callBackID.toLong(), params);
   }
@@ -36,9 +36,15 @@ void Database::submit(QString typeID, QString callBackID, QString actionName, QV
 
 void Database::createTable(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "createTable" << params << endl;
+    QString databaseName = params.value("databaseName").toString();//数据库名
     QString sql = params.value("sql").toString();//创建表sql
     QString sqlindex = params.value("sqlindex").toString();//创建索引sql
 
+    if(databaseName.isEmpty()){
+        qDebug() << Q_FUNC_INFO << "数据库名不能为空" << endl;
+        emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:数据库名不能为空");
+        return;
+    }
     if(sql.isEmpty()){
         qDebug() << Q_FUNC_INFO << "sql不能为空" << endl;
         emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:sql不能为空");
@@ -48,8 +54,14 @@ void Database::createTable(long callBackID, QVariantMap params){
     //连接数据库
     myConnection = QSqlDatabase::addDatabase("QSQLITE");
     QString dataDir = Helper::instance()->getDataRootPath();
-    QString dbPath = dataDir + "/" + "syberos-database.sqlite";
+    QDir d(dataDir);
+    if (!d.exists()) {
+        qDebug() << Q_FUNC_INFO << "目录不存在" << endl;
+        checkOrCreateDir(dataDir);
+    }
+    QString dbPath = dataDir + "/" + databaseName+".sqlite";
     qDebug() << Q_FUNC_INFO << "数据库路径 = " << dbPath << endl;
+
     myConnection.setDatabaseName(dbPath);
 
     //打开数据库
@@ -83,8 +95,14 @@ void Database::createTable(long callBackID, QVariantMap params){
 
 void Database::selectOperate(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "selectOperate" << params << endl;
+    QString databaseName = params.value("databaseName").toString();//数据库名
     QString sqlQuery = params.value("sql").toString();
 
+    if(databaseName.isEmpty()){
+        qDebug() << Q_FUNC_INFO << "数据库名不能为空" << endl;
+        emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:数据库名不能为空");
+        return;
+    }
     if(sqlQuery.isEmpty()){
         qDebug() << Q_FUNC_INFO << "sql不能为空" << endl;
         emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:sql不能为空");
@@ -93,7 +111,7 @@ void Database::selectOperate(long callBackID, QVariantMap params){
 
     myConnection = QSqlDatabase::addDatabase("QSQLITE");
     QString dataDir = Helper::instance()->getDataRootPath();
-    QString dbPath = dataDir + "/" + "syberos-database.sqlite";
+    QString dbPath = dataDir + "/" + databaseName+".sqlite";
     myConnection.setDatabaseName(dbPath);
     bool isOK = myConnection.open();
     if (!isOK) {
@@ -126,8 +144,14 @@ void Database::selectOperate(long callBackID, QVariantMap params){
 
 void Database::execOperate(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "selectOperate" << params << endl;
+    QString databaseName = params.value("databaseName").toString();//数据库名
     QString sqlQuery = params.value("sql").toString();
 
+    if(databaseName.isEmpty()){
+        qDebug() << Q_FUNC_INFO << "数据库名不能为空" << endl;
+        emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:数据库名不能为空");
+        return;
+    }
     if(sqlQuery.isEmpty()){
         qDebug() << Q_FUNC_INFO << "sql不能为空" << endl;
         emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:sql不能为空");
@@ -136,7 +160,7 @@ void Database::execOperate(long callBackID, QVariantMap params){
 
     myConnection = QSqlDatabase::addDatabase("QSQLITE");
     QString dataDir = Helper::instance()->getDataRootPath();
-    QString dbPath = dataDir + "/" + "syberos-database.sqlite";
+    QString dbPath = dataDir + "/" + databaseName+".sqlite";
     myConnection.setDatabaseName(dbPath);
 
     bool isOK = myConnection.open();
@@ -158,13 +182,22 @@ void Database::execOperate(long callBackID, QVariantMap params){
     emit success(callBackID, true);
 }
 
-void Database::isDataExists(long callBackID){
-    qDebug() << Q_FUNC_INFO << "isDataExists" << endl;
+void Database::isDataExists(long callBackID, QVariantMap params){
+    qDebug() << Q_FUNC_INFO << "isDataExists" << params << endl;
+    QString databaseName = params.value("databaseName").toString();//数据库名
 
+    if(databaseName.isEmpty()){
+        qDebug() << Q_FUNC_INFO << "数据库名不能为空" << endl;
+        emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:数据库名不能为空");
+        return;
+    }
     QString dataDir = Helper::instance()->getDataRootPath();
-    QDir d(dataDir);
+    QString dbPath = dataDir + "/" + databaseName+".sqlite";
+    qDebug() << Q_FUNC_INFO << "dbPath" << dbPath << endl;
+
     //判断数据库是否存在
-    if (!d.exists()) {
+    QFile file(dbPath);
+    if(!file.exists()){
         qDebug() << Q_FUNC_INFO << "数据库不存在" << endl;
         emit failed(callBackID, ErrorInfo::databaseError, "数据库错误:数据库不存在");
         return;
@@ -177,7 +210,13 @@ void Database::isDataExists(long callBackID){
 void Database::isTableExists(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "isTableExists" << params << endl;
     QString tableName = params.value("tableName").toString();
+    QString databaseName = params.value("databaseName").toString();//数据库名
 
+    if(databaseName.isEmpty()){
+        qDebug() << Q_FUNC_INFO << "数据库名不能为空" << endl;
+        emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:数据库名不能为空");
+        return;
+    }
     if(tableName.isEmpty()){
         qDebug() << Q_FUNC_INFO << "表名不能为空" << endl;
         emit failed(callBackID, ErrorInfo::InvalidParameter, "不合法的参数:表名不能为空");
@@ -186,7 +225,7 @@ void Database::isTableExists(long callBackID, QVariantMap params){
 
     myConnection = QSqlDatabase::addDatabase("QSQLITE");
     QString dataDir = Helper::instance()->getDataRootPath();
-    QString dbPath = dataDir + "/" + "syberos-database.sqlite";
+    QString dbPath = dataDir + "/" + databaseName+".sqlite";
     myConnection.setDatabaseName(dbPath);
 
     bool isOK = myConnection.open();

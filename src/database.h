@@ -45,7 +45,7 @@ public:
      * @return 成功则返回true。
      *      失败则返回错误码。
      */
-    void isDataExists(long callBackID);
+    void isDataExists(long callBackID, QVariantMap params);
 
     /**
      * @brief isTableExists 判断表是否存在
