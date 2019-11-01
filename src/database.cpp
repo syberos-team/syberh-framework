@@ -131,17 +131,13 @@ void Database::query(long callBackID, QVariantMap params){
         return;
     }
 
-    QStringList columnList = sqlQuery.mid(6).split("from")[0].split(",");
-    qDebug() << Q_FUNC_INFO << "selectOperate:columnList" << columnList << endl;
-
     QJsonArray jsonArr;
-    while (query.next()) {//循环数据
+    QSqlRecord rec = query.record();
+    while(query.next()) {
         QJsonObject jsonObj;
-        for(int i = 0 ; i<columnList.size(); ++i){
-            QVariant values = query.value(i);
-            if(values.isNull())
-                break;
-            jsonObj.insert(columnList[i].trimmed(), values.toString());
+        rec = query.record();
+        for(int i = 0 ; i<rec.count(); ++i){
+            jsonObj.insert(rec.fieldName(i), rec.value(i).toString());
         }
         jsonArr.append(jsonObj);
     }
