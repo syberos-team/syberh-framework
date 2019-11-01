@@ -131,13 +131,18 @@ void Database::query(long callBackID, QVariantMap params){
         return;
     }
 
+    QStringList columnList = sqlQuery.mid(6).split("from")[0].split(",");
+    qDebug() << Q_FUNC_INFO << "selectOperate:columnList" << columnList << endl;
+
     QJsonArray jsonArr;
     while (query.next()) {//循环数据
         QJsonObject jsonObj;
-        jsonObj.insert("id", query.value("id").toString());
-        jsonObj.insert("title", query.value("title").toString());
-        jsonObj.insert("content", query.value("content").toString());
-        jsonObj.insert("created", query.value("created").toString());
+        for(int i = 0 ; i<columnList.size(); ++i){
+            QVariant values = query.value(i);
+            if(values.isNull())
+                break;
+            jsonObj.insert(columnList[i].trimmed(), values.toString());
+        }
         jsonArr.append(jsonObj);
     }
 
@@ -145,6 +150,8 @@ void Database::query(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "selectOperate:jsonArr" << jsonArr << endl;
     emit success(callBackID, QVariant(jsonArr));
 }
+
+
 
 void Database::execute(long callBackID, QVariantMap params){
     qDebug() << Q_FUNC_INFO << "selectOperate" << params << endl;
