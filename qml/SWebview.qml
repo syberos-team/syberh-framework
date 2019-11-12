@@ -171,9 +171,12 @@ CPage{
     }
 
     contentAreaItem:Rectangle{
+
         id:root
         anchors.fill:parent
         SNavigationBar{
+            y: 25
+            x: 0
             id: sNavigationBar
             closeCurWebviewEnable: swebview.canGoBack
             onGoBack: {
@@ -207,8 +210,10 @@ CPage{
         WebEngineView {
             id: swebview
             focus: true
+            // zoomFactor: 3.0
             signal downLoadConfirmRequest
             property url curHoverUrl: ""
+
             anchors {
                 top: sNavigationBar.visible ? sNavigationBar.bottom : parent.top
                 left: parent.left
@@ -219,7 +224,7 @@ CPage{
             webChannel: channel
 
             profile: WebEngineProfile{
-              httpUserAgent: "Mozilla/5.0 (Linux; Android 4.4.2; GT-I9505 Build/JDQ39) SyberOS "+helper.aboutPhone().osVersion+";"
+              httpUserAgent: "Mozilla/5.0 (Linux; Android 5.0; SM-G900P Build/LRX21T) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3770.100 Mobile Safari/537.36 SyberOS "+helper.aboutPhone().osVersion+";"
             }
 
             property bool _autoLoad: true
@@ -299,10 +304,11 @@ CPage{
             }
 
             onFileDialogRequested: function(request){
-              request.accepted = true;
-              picker.request = request;
-              picker.count = request.mode===FileDialogRequest.FileModeOpenMultiple ? 30 : 1
-              picker.show();
+              LOG.logger.verbose('onFileDialogRequested >>>>>>>>>>>>>>>>>>>>>文件选择')
+              console.log('onFileDialogRequested >>>>>>>>>>>>>>>>>>>>>文件选择')
+              request.accepted = true
+              salert.messageText = '请调用filepicker API实现'
+              salert.show()
             }
 
             onAuthenticationDialogRequested: function(request){
@@ -318,6 +324,15 @@ CPage{
               }
               authDialog.clear();
               authDialog.show();
+            }
+
+            onContextMenuRequested: function(request) {
+                console.log('******onContextMenuRequested******')
+                request.accepted = true;
+                myMenu.x = request.x;
+                myMenu.y = request.y;
+                myMenu.trigger.connect(view.triggerWebAction);
+                myMenu.popup();
             }
         }
 
@@ -357,37 +372,32 @@ CPage{
                 request.dialogReject()
             }
         }
-        SFilesPicker {
-            id: picker
-            property FileDialogRequest request
-            titleText: "文件选择"
-            leftItemEnabled: true
-            count: 1
 
-            Connections {
-                target: picker
-                onOk: {
-                    request.dialogAccept(picker.filesPath);
-                }
-                onCancel: {
-                    request.dialogReject();
-                }
-            }
+        // SFilesPicker {
+        //     id: picker
+        //     property FileDialogRequest request
+        //     titleText: "文件选择"
+        //     leftItemEnabled: true
+        //     count: 1
 
-            Keys.onReleased: {
-                if (event.key == Qt.Key_Back || event.key == Qt.Key_Escape) {
-                    event.accepted =true;
-                    request.dialogReject();
-                }
-            }
+        //     Keys.onReleased: {
+        //         if (event.key == Qt.Key_Back || event.key == Qt.Key_Escape) {
+        //             console.log('***********Keys.onReleased**Key_Back******')
+        //             LOG.logger.verbose('***********Keys.onReleased**Key_Back******')
+        //             event.accepted =true;
+        //             picker.request.dialogReject();
+        //         }
+        //     }
 
-            function show(){
-                parent = gAppUtils.pageStackWindow
-                visible = true
-                status = 2
-                focus = true
-            }
-        }
+        //     // function show(){
+        //     //     parent = gAppUtils.pageStackWindow
+        //     //     visible = true
+        //     //     status = 2
+        //     //     focus = true
+        //     //     LOG.logger.verbose('onFileDialogRequested >>>>>>>>>>>>>>>>>>>>>文件选择*****show')
+        //     //    console.log('onFileDialogRequested >>>>>>>>>>>>>>>>>>>>>文件选择*****show')
+        //     // }
+        // }
         CInputDialog {
             id: authDialog
             property AuthenticationDialogRequest request
@@ -443,6 +453,16 @@ CPage{
     }
 
     Component.onCompleted: {
+
+        WebEngine.settings.webGLEnabled = true;
+        swebview.settings.webGLEnabled = true;
+        console.log('Screen--', JSON.stringify(Screen))
+
+        console.log('gScreenInfo--', JSON.stringify(gScreenInfo))
+
+        // 设置缩放比例
+        swebview.zoomFactor = gScreenInfo.density
+        
         //设置是否显示状态栏，应与statusBarHoldItemEnabled属性一致
         gScreenInfo.setStatusBar(true);
         console.log('swebview-navigationBarColor-', navigationBarColor)
