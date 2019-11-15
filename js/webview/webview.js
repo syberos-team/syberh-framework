@@ -353,10 +353,11 @@ function WebView (options) {
     } else {
       var wpId = 'router_' + (swebviews.length + 1);
       logger.verbose('开始创建新的webview:[%s]', wpId);
+      var sourceQml = SYBEROS.moduleVersion == '59.0' ? '../qml/SWebview59.qml' : '../qml/SWebview.qml';
       dwevview = new WebView({
         id: wpId,
         module: wpId,
-        source: '../qml/SWebview.qml',
+        source: sourceQml,
         autoCreate: true,
         removePlugin: true,
         page: true
@@ -391,6 +392,7 @@ function WebView (options) {
       // 设定webview的深度为2
       webviewdepth += 1;
     }
+    console.log('helper.isGtQt56--', helper.isGtQt56());
     that.trigger('success', handlerId, true);
   });
 
@@ -539,12 +541,18 @@ function WebView (options) {
 WebView.prototype = SyberPlugin.prototype;
 
 WebView.prototype.onMessageReceived = function (message, webviewId) {
-  logger.verbose('webview:[%s] ,onMessageReceived(): ', webviewId, message);
+  logger.verbose('webview:[%s] ,onMessageReceived(): ', webviewId, typeof message, typeof message.data, message);
+  console.log('webview:[%s] ,onMessageReceived(): ', webviewId, typeof message, typeof message.data, message.data);
 
-  var model = message;
-  if (typeof message === 'string') {
+  var model;
+  if (message && typeof message === 'object') {
+    model = JSON.parse(message.data);
+  } else {
     model = JSON.parse(message);
   }
+
+  console.log('**********model**********', JSON.stringify(model));
+
   var handlerId = model.callbackId;
   var method = model.handlerName;
   var module = model.module;
