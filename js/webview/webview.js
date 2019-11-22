@@ -3,6 +3,9 @@ var WebviewStatusShow = 0;
 // 被pop打开
 var WebviewStatusPop = 1;
 
+var OnShowStautsReady = 'ready';
+var OnShowStautsRedisplay = 'redisplay';
+
 function WebView (options) {
   // 默认参数
   var defaultOpts = {
@@ -39,21 +42,20 @@ function WebView (options) {
     swebviewCache[that.id] = object;
     swebviews.push(that);
     currentWebview = that;
+
+    var onShowQueueUrl;
     if (that.currentUrl) {
       logger.verbose('currentUrl:', that.currentUrl);
-      // 发送onShow订阅
-      that.pushQueue('subscribe', {
-        url: that.currentUrl,
-        handlerName: 'onShow',
-        result: { ready: true }
-      });
+      onShowQueueUrl = that.currentUrl;
     } else {
-      that.pushQueue('subscribe', {
-        url: that.object.surl,
-        handlerName: 'onShow',
-        result: { ready: true, first: true }
-      });
+      onShowQueueUrl = that.object.surl;
     }
+    // 发送onShow订阅
+    that.pushQueue('subscribe', {
+      url: onShowQueueUrl,
+      handlerName: 'onShow',
+      result: { status: OnShowStautsReady }
+    });
     if (!that.loadProgressConnect) {
       // 设置绑定信号
       that.loadProgressConnect = true;
@@ -109,7 +111,7 @@ function WebView (options) {
     that.pushQueue('subscribe', {
       url: options.url,
       handlerName: 'onShow',
-      result: { ready: true, redisplay: true }
+      result: { status: OnShowStautsRedisplay }
     });
     that.dog(options.url);
   });
@@ -529,7 +531,6 @@ function WebView (options) {
         }
       }
       var topVebview = swebviews[swebviews.length - 1];
-
       currentWebview = topVebview;
       if (swebviews.length === 1) {
         logger.verbose('返回最顶层:[%d]', swebviews.length);
