@@ -322,15 +322,6 @@ CPage{
               authDialog.clear();
               authDialog.show();
             }
-
-            onContextMenuRequested: function(request) {
-                console.log('******onContextMenuRequested******')
-                request.accepted = true;
-                myMenu.x = request.x;
-                myMenu.y = request.y;
-                myMenu.trigger.connect(view.triggerWebAction);
-                myMenu.popup();
-            }
         }
 
         SAlert {
@@ -484,6 +475,6 @@ CPage{
         }
 
         //设置状态栏样式，取值为"black"，"white"，"transwhite"和"transblack"
-        //gScreenInfo.setStatusBarStyle("transblack");
+        gScreenInfo.setStatusBarStyle("black");
     }
 }
