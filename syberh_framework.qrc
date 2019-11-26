@@ -88,5 +88,7 @@
         <file>qml/filesPicker.qml</file>
         <file>res/navClose.png</file>
         <file>res/navBack.png</file>
+        <file>qml/SQrcode.qml</file>
+        <file>js/qrcode/qrcode.js</file>
     </qresource>
 </RCC>
