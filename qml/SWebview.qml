@@ -14,11 +14,11 @@ import "./CMenu"
 
 
 CPage{
-    orientationPolicy:CPageOrientation.Automatic
     id: webView
+    // 屏幕自动旋转
+    orientationPolicy: CPageOrientation.Automatic
     //加载进度信号
     signal sloadProgress(var loadProgress)
-
     //加载信号
     signal sloadingChanged(var loadRequest)
     //返回键信号
@@ -27,6 +27,8 @@ CPage{
     signal receiveMessage(var message)
     //导航栏关闭信号
     signal navigationBarClose()
+    // 屏幕旋转信号
+    signal orientation(var pageOrientation)
 
     property string surl:""
 
@@ -53,6 +55,62 @@ CPage{
 
     // 关闭按钮是否展示
     property bool navigationBarCloseIconEnable: true
+
+    // 关闭按钮是否展示
+    property bool pageHide: false
+    
+    // 关联屏幕旋转信号(被动旋转是gScreenInfo.currentOrientation， 主动旋转webView.orientationPolicy)
+    Connections {
+        target: gScreenInfo
+        ignoreUnknownSignals: true
+        onCurrentOrientationChanged: {
+            console.log('屏幕切换接收到信号了×××××××××××××××××××××', webView.orientationPolicy, gScreenInfo.currentOrientation, surl, pageHide)
+            if (pageHide) return
+            webView.orientation({
+              pageOrientation: webView.orientationPolicy,
+              appOrientation: gScreenInfo.currentOrientation,
+              surl: surl
+            })
+            // 横屏需要隐藏状态栏
+            if(gScreenInfo.currentOrientation == CScreenInfo.Landscape 
+                || gScreenInfo.currentOrientation == CScreenInfo.LandscapeInverted
+                || webView.orientationPolicy == CScreenInfo.Landscape
+                || webView.orientationPolicy == CScreenInfo.LandscapeInverted
+              ) {
+                console.log('监听到信号*****************横屏')
+                console.log('是否有键盘---', gInputContext.softwareInputPanelVisible)
+                webView.statusBarHoldEnabled = false
+                gScreenInfo.setStatusBar(false);
+                 if(gInputContext.softwareInputPanelVisible) {
+                     webView.anchors.bottomMargin = -140
+                 } else {
+                     webView.anchors.bottomMargin = 0
+                 }
+            } else {
+                console.log('监听到信号*****************竖屏')
+                webView.anchors.bottomMargin = 0
+                webView.statusBarHoldEnabled = true
+                gScreenInfo.setStatusBar(true);
+                gScreenInfo.setStatusBarStyle("black");
+            }
+        }
+    }
+
+    // 设置页面旋转方向 1: 竖屏 2：横屏 默认： 跟着设备旋转
+    function setPageOrientation(orientation) {
+        if (orientation == 1) {
+            webView.statusBarHoldEnabled = true
+            gScreenInfo.setStatusBar(true);
+            webView.orientationPolicy = CPageOrientation.LockPortrait
+        } else if(orientation == 2) {
+            webView.statusBarHoldEnabled = false
+            gScreenInfo.setStatusBar(false);
+            webView.orientationPolicy = CPageOrientation.LockLandscape
+        } else {
+            webView.orientationPolicy = CPageOrientation.Automatic
+        }
+        console.log('orientation---webView.orientationPolicy---', orientation, webView.orientationPolicy, CPageOrientation.LockLandscape)
+    }
 
     //设置背景色
     function setBackgroundColor(color){
@@ -419,10 +477,33 @@ CPage{
 
     }
 
+    onStatusChanged:{
+      if(status == CPageStatus.Show){
+        console.log('页面展示了', surl)
+          pageHide = false
+          console.log('gScreenInfo*************', JSON.stringify(gScreenInfo), webView.orientationPolicy)
+          // 跟随屏幕旋转的时候，横屏进入下一个页面，页面状态栏需要手动隐藏，隐藏需2个方法一起使用，才可生效（亲测）
+          // 主动被动都需要走这个方法
+          if(webView.orientationPolicy == CScreenInfo.Landscape
+              || webView.orientationPolicy == CScreenInfo.LandscapeInverted
+              || gScreenInfo.currentOrientation == CScreenInfo.Landscape
+              || gScreenInfo.currentOrientation == CScreenInfo.LandscapeInverted
+            ) {
+              webView.statusBarHoldEnabled = false
+              gScreenInfo.setStatusBar(false);
+          } else {
+              gScreenInfo.setStatusBar(true);
+              //设置状态栏样式，取值为"black"，"white"，"transwhite"和"transblack"
+              gScreenInfo.setStatusBarStyle("black");
+          }
+      } else if (status == CPageStatus.Hide) {
+          console.log('页面将要隐藏啦！！！', surl)
+          pageHide = true
+      }
+    }
 
     Component.onCompleted: {
-        //设置是否显示状态栏，应与statusBarHoldItemEnabled属性一致
-        gScreenInfo.setStatusBar(true);
+
         console.log('swebview-navigationBarColor-', navigationBarColor)
         console.log('swebview-navigationBarTitle-', navigationBarTitle)
         console.log('swebview-navigationBarTextColor-', navigationBarTextColor)
@@ -444,7 +525,5 @@ CPage{
             })
         }
 
-        //设置状态栏样式，取值为"black"，"white"，"transwhite"和"transblack"
-        //gScreenInfo.setStatusBarStyle("transblack");
     }
 }
