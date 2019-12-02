@@ -15,7 +15,8 @@ import "./CMenu"
 
 CPage{
     id: webView
-
+    // 屏幕自动旋转
+    orientationPolicy: CPageOrientation.Automatic
     //加载进度信号
     signal sloadProgress(var loadProgress)
     //加载信号
