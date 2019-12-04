@@ -79,17 +79,12 @@ function WebView (options) {
       });
     }
 
-    // 屏幕旋转信号
+    // 屏幕旋转信号 (每个webview都监听了此信号，所以屏幕选择所有页面都会收到此消息)
     object.orientation.connect(function (orientationObj) {
-      console.log('orientationObj***********', JSON.stringify(orientationObj));
+      logger.verbose('orientationObj***********', JSON.stringify(orientationObj));
 
-      var sameUrl = diffUrl(currentWebview.object.surl, orientationObj.surl);
-      if (!sameUrl) {
-        console.log('不是顶层页面,不推送消息,保证只有一个页面发出了resize');
-        return;
-      }
       that.pushQueue('subscribe', {
-        url: onShowQueueUrl,
+        url: orientationObj.url,
         handlerName: 'onResize',
         result: {
           pageOrientation: orientationObj.pageOrientation,
@@ -98,7 +93,7 @@ function WebView (options) {
       });
       // 页面未加载完成，就只添加消息，页面加载完成，添加消息并触发消息
       if (that.isLoadComplete) {
-        that.dog(onShowQueueUrl);
+        that.dog(orientationObj.url);
       }
     });
 
@@ -292,16 +287,16 @@ function WebView (options) {
     }
 
     param.color = param.color.trim();
-    param.textColor = param.textColor.trim();
+    param.backgroundColor = param.backgroundColor.trim();
 
-    if (!param.color && !param.textColor) {
+    if (!param.color && !param.backgroundColor) {
       that.trigger('failed', handlerId, 9001, '参数不能为空');
       return;
     }
 
     object.setNavigationBarColor({
       color: param.color,
-      textColor: param.textColor
+      backgroundColor: param.backgroundColor
     });
 
     that.trigger('success', handlerId, true);
@@ -312,12 +307,12 @@ function WebView (options) {
     logger.verbose('Webivew:[%s] , on setBackgroundColor() ,param:%s ,', that.id, JSON.stringify(param));
     console.log('Webivew:[%s] , on setBackgroundColor() ,param:%s ,', that.id, JSON.stringify(param));
 
-    param.color = param.color.trim();
-    if (!param.color) {
-      that.trigger('failed', handlerId, 9001, 'color不能为空');
+    param.backgroundColor = param.backgroundColor.trim();
+    if (!param.backgroundColor) {
+      that.trigger('failed', handlerId, 9001, 'backgroundColor不能为空');
       return;
     }
-    object.setBackgroundColor(param.color);
+    object.setBackgroundColor(param.backgroundColor);
     that.trigger('success', handlerId, true);
   });
   // 保留当前页面，跳转到某个页面
@@ -404,7 +399,8 @@ function WebView (options) {
 
       dwevview.param = {
         surl: getUrl(param.url),
-        orientationPolicy: globalPageOrientation
+        orientationPolicy: globalPageOrientation,
+        backgroundColor: param.backgroundColor
       };
 
       if (globalPageOrientation == 2) {
@@ -413,14 +409,6 @@ function WebView (options) {
       } else if (globalPageOrientation == 1) {
         dwevview.param.statusBarHoldEnabled = true;
         gScreenInfo.setStatusBar(true);
-      }
-
-      // webview参数
-      if (param.webview) {
-        for (var key in param.webview) {
-          dwevview.param[key] = param.webview[key];
-        }
-        console.log('dwevview.param--', JSON.stringify(dwevview.param));
       }
 
       // navigationBar参数
@@ -486,8 +474,10 @@ function WebView (options) {
     logger.verbose('dog() 处理消息数:%d', queue.length);
     var len = queue.length;
     for (var i = 0; i < len; i++) {
+      // 每次从头部拿到消息，并从队列删除
       var obj = queue.shift();
       if (!obj) {
+        logger.verbose('消息内容:%s', JSON.stringify(obj));
         continue;
       }
       logger.verbose('消息内容:%s', JSON.stringify(obj));
@@ -495,6 +485,8 @@ function WebView (options) {
 
       var dret = diffUrl(currentUrl, dUrl);
       if (!dret) {
+        // 如果不是当前页面的消息，再给他加到队列里面，等到了该页面继续推出去(考虑到redirectTo的情况)
+        this.messageQueue.push(obj);
         logger.verbose('当前消息队列不匹配:%s', obj.url);
         continue;
       }
@@ -716,7 +708,7 @@ WebView.prototype.onSubscribe = function (handlerName, result) {
   };
   var res = JSON.stringify(resObj);
   logger.verbose('onSubscribe() res:', res);
-  var webview = currentWebview.object;
+  var webview = this.object;
   webview.evaluateJavaScript(
     'JSBridge._handleMessageFromNative(' + res + ')'
   );
@@ -730,7 +722,8 @@ WebView.prototype.subscribeEvaluate = function (handlerName, data) {
   };
   var res = JSON.stringify(resObj);
   logger.verbose('subscribeEvaluate() res:', res);
-  var webview = currentWebview.object;
+
+  var webview = this.object;
   webview.evaluateJavaScript(
     'JSBridge._handleMessageFromNative(' + res + ')'
   );

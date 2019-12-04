@@ -21,7 +21,7 @@ function App () {
       return;
     }
 
-    if (orientation != 0 && orientation != 1 && orientation != 2) {
+    if (orientation != 0 && orientation != 1 && orientation != 2 && orientation != 8) {
       WEBVIEWCORE.trigger('failed', that.handlerId, 9001, 'orientation参数有误');
       return;
     }
