@@ -35,8 +35,6 @@ function WebView (options) {
   this.navigateBack = navigateBack.bind(this);
   this.dog = dog.bind(this);
   this.pushQueue = pushQueue.bind(this);
-  // 页面是否加载完成
-  this.isLoadComplete = false;
 
   this.on('ready', function (object) {
     logger.verbose('webview:[%s] ,on  ready() start', that.id, pageStack && pageStack.depth);
@@ -44,32 +42,37 @@ function WebView (options) {
     swebviewCache[that.id] = object;
     swebviews.push(that);
     currentWebview = that;
-
-    var onShowQueueUrl;
-    if (that.currentUrl) {
-      logger.verbose('currentUrl:', that.currentUrl);
-      onShowQueueUrl = that.currentUrl;
-    } else {
-      // 拿到webview的url
-      onShowQueueUrl = that.object.getCurrentUrl();
-    }
-
-    // 添加onReady订阅(保证他是队列里的第一个)
-    that.pushQueue('subscribe', {
-      url: onShowQueueUrl,
-      handlerName: 'onReady'
-    });
     
     if (!that.loadProgressConnect) {
       // 设置绑定信号
       that.loadProgressConnect = true;
       // 页面加载成功信号
       object.sloadingChanged.connect(function (loadRequest) {
+        var curUrl = loadRequest.url.toString()
         if (loadRequest.status === 2) {
-          logger.verbose(' webview:[%s] ,页面加载完成 success: ', that.id, loadRequest.url.toString());
+          logger.verbose(' webview:[%s] ,页面加载完成 success: ', that.id, curUrl);
+          // 添加onReady订阅(保证他是队列里的第一个)
+          that.pushQueue('subscribe', {
+            url: curUrl,
+            handlerName: 'onReady'
+          });
           // 调用任务狗
-          that.dog(loadRequest.url.toString());
-          that.isLoadComplete = true;
+          that.dog(curUrl);
+
+          // 屏幕旋转信号 (每个webview都监听了此信号，所以屏幕选择所有页面都会收到此消息)
+          object.orientation.connect(function (orientationObj) {
+            logger.verbose('orientationObj***********', JSON.stringify(orientationObj));
+
+            that.pushQueue('subscribe', {
+              url: orientationObj.url,
+              handlerName: 'onResize',
+              result: {
+                pageOrientation: orientationObj.pageOrientation,
+                appOrientation: orientationObj.appOrientation
+              }
+            });
+            that.dog(orientationObj.url);
+          });
         }
       });
 
@@ -79,23 +82,7 @@ function WebView (options) {
       });
     }
 
-    // 屏幕旋转信号 (每个webview都监听了此信号，所以屏幕选择所有页面都会收到此消息)
-    object.orientation.connect(function (orientationObj) {
-      logger.verbose('orientationObj***********', JSON.stringify(orientationObj));
-
-      that.pushQueue('subscribe', {
-        url: orientationObj.url,
-        handlerName: 'onResize',
-        result: {
-          pageOrientation: orientationObj.pageOrientation,
-          appOrientation: orientationObj.appOrientation
-        }
-      });
-      // 页面未加载完成，就只添加消息，页面加载完成，添加消息并触发消息
-      if (that.isLoadComplete) {
-        that.dog(orientationObj.url);
-      }
-    });
+    
 
     // 只保证一个webview注册nativesdk
     if (!registrNativeSdkManager) {
@@ -134,8 +121,7 @@ function WebView (options) {
     }
     that.pushQueue('subscribe', {
       url: options.url,
-      handlerName: 'onShow',
-      result: { status: OnShowStautsRedisplay }
+      handlerName: 'onShow'
     });
 
     that.dog(options.url);
@@ -173,7 +159,7 @@ function WebView (options) {
       handlerName: 'onHide'
     });
 
-    that.dog(options.url);
+    that.dog(that.object.getCurrentUrl());
   });
 
   this.on('getCurrentPages', function (object, handlerId, param) {
