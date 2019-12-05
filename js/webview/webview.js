@@ -50,16 +50,16 @@ function WebView (options) {
       logger.verbose('currentUrl:', that.currentUrl);
       onShowQueueUrl = that.currentUrl;
     } else {
-      onShowQueueUrl = that.object.surl;
+      // 拿到webview的url
+      onShowQueueUrl = that.object.getCurrentUrl();
     }
 
-    // 发送onShow订阅
+    // 添加onReady订阅(保证他是队列里的第一个)
     that.pushQueue('subscribe', {
       url: onShowQueueUrl,
-      handlerName: 'onShow',
-      result: { status: OnShowStautsReady }
+      handlerName: 'onReady'
     });
-
+    
     if (!that.loadProgressConnect) {
       // 设置绑定信号
       that.loadProgressConnect = true;
@@ -144,7 +144,9 @@ function WebView (options) {
     var orientation = that.object.orientationPolicy;
     var appOrientation = gScreenInfo.currentOrientation;
     var statusBarHoldEnabled = that.object.statusBarHoldEnabled;
-    console.log('当前屏幕方向: ', orientation, appOrientation, statusBarHoldEnabled);
+
+    logger.verbose('当前屏幕方向: ', orientation, appOrientation, statusBarHoldEnabled);
+
     if (orientation == 1 || orientation == 0 && appOrientation == 1) {
       gScreenInfo.setStatusBar(true);
       if (!statusBarHoldEnabled) {
@@ -159,8 +161,19 @@ function WebView (options) {
     }
   });
 
+  /**
+   * 页面隐藏
+   * (navigateTo 会触发)
+   */
   this.on('hide', function () {
+    logger.verbose('Webivew:, hide');
 
+    that.pushQueue('subscribe', {
+      url: that.object.getCurrentUrl(),
+      handlerName: 'onHide'
+    });
+
+    that.dog(options.url);
   });
 
   this.on('getCurrentPages', function (object, handlerId, param) {
@@ -179,7 +192,11 @@ function WebView (options) {
       logger.verbose('返回事件 | webview:[%s] | 是否能回退:[%s]:', that.id, webview.canGoBack());
       if (currentWebview.id === that.id && webview.canGoBack()) {
         event.accepted = true;
+        that.trigger('unload', {url: webview.getCurrentUrl()});
         webview.goBack();
+        if (!webview.canGoBack() && swebviews.length == 1) {
+          webview.navigationBarBackIconEnable = false
+        }
       } else {
         that.navigateBack({}, function (res) {
           if (res) {
@@ -250,8 +267,8 @@ function WebView (options) {
 
   // 给页面设置标题
   this.on('setTitle', function (object, handlerId, param) {
-    console.log('Webivew:[%s] , on setTitle() ,param:%s ,', that.id, JSON.stringify(param));
-    console.log('---Webivew NavigationBar visible---', object.getNavigationBarStatus());
+    logger.verbose('Webivew:[%s] , on setTitle() ,param:%s ,', that.id, JSON.stringify(param));
+    logger.verbose('---Webivew NavigationBar visible---', object.getNavigationBarStatus());
 
     // 导航栏visible为false，不让修改标题
     if (!object.getNavigationBarStatus()) {
@@ -277,8 +294,8 @@ function WebView (options) {
 
   // 设置导航栏颜色和字体颜色
   this.on('setNavigationBarColor', function (object, handlerId, param) {
-    console.log('Webivew:[%s] , on setNavigationBarColor() ,param:%s ,', that.id, JSON.stringify(param));
-    console.log('---Webivew NavigationBar visible---', object.getNavigationBarStatus());
+    logger.verbose('Webivew:[%s] , on setNavigationBarColor() ,param:%s ,', that.id, JSON.stringify(param));
+    logger.verbose('---Webivew NavigationBar visible---', object.getNavigationBarStatus());
 
     // 导航栏visible为false，不让修改标题
     if (!object.getNavigationBarStatus()) {
@@ -305,7 +322,6 @@ function WebView (options) {
   // 设置背景色
   this.on('setBackgroundColor', function (object, handlerId, param) {
     logger.verbose('Webivew:[%s] , on setBackgroundColor() ,param:%s ,', that.id, JSON.stringify(param));
-    console.log('Webivew:[%s] , on setBackgroundColor() ,param:%s ,', that.id, JSON.stringify(param));
 
     param.backgroundColor = param.backgroundColor.trim();
     if (!param.backgroundColor) {
@@ -318,7 +334,6 @@ function WebView (options) {
   // 保留当前页面，跳转到某个页面
   this.on('navigateBack', function (object, handlerId, param) {
     logger.verbose('Webview:[%s],on navigateBack() start', that.id);
-    console.log('Webview:[%s],on navigateBack() start', that.id);
     logger.verbose('handlerId:%s ,param:', that.id, handlerId, JSON.stringify(param));
     if (!isNumber(param.delta)) {
       var msg = 'delta参数类型错误';
@@ -337,7 +352,7 @@ function WebView (options) {
     });
   });
 
-  // 关闭所有页面，打开某个页面
+  // 关闭所有页面，打开某个页面 (相当于redirectTo，让第一个webview打开url,成功后吧webview返回到顶层)
   this.on('reLaunch', function (object, handlerId, param) {
     logger.verbose('webview:[%s] on reLaunch', that.id, JSON.stringify(param));
     logger.verbose('reLaunch swebviews:[%d]', swebviews.length);
@@ -351,12 +366,27 @@ function WebView (options) {
         if (loadRequest.status === 2) {
           logger.verbose(' webview:[%s] ,页面加载完成 success: ', that.id, loadRequest.url.toString());
           currentWebview.trigger('success', handlerId, true);
+          // 触发页面卸载方法(因为相当于redirectTo，所以取surl属性就是前一个页面的值)
           that.navigateBack({ delta: webviewMaxDepth }, function (res, webview, msg) {
             logger.verbose('reLaunch navigateBack()', res, msg);
             if (res) {
               logger.verbose('pageStack.busy:[%s]', pageStack.busy);
             }
           });
+
+          if (param.backgroundColor) {
+            currentWebview.object.setBackgroundColor(param.backgroundColor);
+          }
+
+          if (param.orientation) {
+            currentWebview.object.setPageOrientation(param.orientation);
+          }
+
+          if (param.navigationBar) {
+            var params = getNavigateBarParams(param.navigationBar);
+            logger.verbose('navigationBar params*****', JSON.stringify(params));
+            currentWebview.object.showNavigatorBar(params);
+          }
         }
       });
     } catch (error) {
@@ -384,7 +414,6 @@ function WebView (options) {
     } else {
       var wpId = 'router_' + (swebviews.length + 1);
       logger.verbose('开始创建新的webview:[%s]', wpId);
-      console.log('开始创建新的webview:[%s]', wpId);
       var sourceQml = SYBEROS.moduleVersion == '59.0' ? '../qml/SWebview59.qml' : '../qml/SWebview.qml';
       dwevview = new WebView({
         id: wpId,
@@ -395,18 +424,30 @@ function WebView (options) {
         page: true
       });
 
-      console.log('跳转新页面，设置横竖屏******', globalPageOrientation);
+      var orientationPolicy = globalPageOrientation;
+      var orientation = param.orientation;
+
+      if (orientation != undefined) {
+        if (orientation == 0 || orientation == 1 || orientation == 2 || orientation == 8) {
+          orientationPolicy = orientation;
+        } else {
+          that.trigger('failed', that.handlerId, 9001, 'orientation参数有误');
+          return;
+        }
+      }
+
+      logger.verbose('跳转新页面，设置横竖屏******', orientationPolicy);
 
       dwevview.param = {
         surl: getUrl(param.url),
-        orientationPolicy: globalPageOrientation,
+        orientationPolicy: orientationPolicy,
         backgroundColor: param.backgroundColor
       };
 
-      if (globalPageOrientation == 2) {
+      if (orientationPolicy == 2) {
         dwevview.param.statusBarHoldEnabled = false;
         gScreenInfo.setStatusBar(false);
-      } else if (globalPageOrientation == 1) {
+      } else if (orientationPolicy == 1) {
         dwevview.param.statusBarHoldEnabled = true;
         gScreenInfo.setStatusBar(true);
       }
@@ -415,32 +456,51 @@ function WebView (options) {
       if (param.navigationBar) {
         for (var key in param.navigationBar) {
           var newKey = 'navigationBar' + key.substring(0, 1).toUpperCase() + key.substring(1);
-          console.log('newKey-', newKey);
+          logger.verbose('newKey-', newKey);
           dwevview.param[newKey] = param.navigationBar[key];
         }
-        console.log('dwevview.param--', JSON.stringify(dwevview.param));
+        logger.verbose('dwevview.param--', JSON.stringify(dwevview.param));
       }
 
       logger.verbose('webviewParams:[%s]', JSON.stringify(dwevview.param));
-      console.log('webviewParams:[%s]', JSON.stringify(dwevview.param));
 
       dwevview.currentUrl = param.url;
-      console.log('navigator TO URL:-------------------', that.currentUrl);
+      logger.verbose('navigator TO URL:-------------------', that.currentUrl);
       SYBEROS.addPlugin(dwevview);
       // 设定webview的深度为2
       webviewdepth += 1;
     }
-    console.log('helper.isGtQt56--', helper.isGtQt56());
+    logger.verbose('helper.isGtQt56--', helper.isGtQt56());
     that.trigger('success', handlerId, true);
+
+    that.trigger('hide');
   });
 
   // 不关闭当前页面，跳转到某个页面
   this.on('redirectTo', function (object, handlerId, param) {
     try {
       logger.verbose('webview:[%s] on redirectTo', that.id, JSON.stringify(param));
+      logger.verbose('页面redirectTo*********卸载页面*****', currentWebview.object.getCurrentUrl())
+      var curUrl = currentWebview.object.getCurrentUrl()
       var url = getUrl(param.url);
       currentWebview.object.openUrl(url);
       currentWebview.trigger('success', handlerId, true);
+      currentWebview.trigger('unload', {url: curUrl});
+
+      if (param.backgroundColor) {
+        currentWebview.object.setBackgroundColor(param.backgroundColor);
+      }
+
+      if (param.orientation) {
+        currentWebview.object.setPageOrientation(param.orientation);
+      }
+
+      if (param.navigationBar) {
+        var params = getNavigateBarParams(param.navigationBar);
+        logger.verbose('navigationBar params*****', JSON.stringify(params));
+        currentWebview.object.showNavigatorBar(params);
+      }
+
       if (handlerId) {
         that.trigger('success',
           handlerId,
@@ -451,6 +511,23 @@ function WebView (options) {
       logger.error('redirectTo error', error.message);
       that.trigger('failed', handlerId, 9999, error.message);
     }
+  });
+
+  /**
+   * 页面卸载
+   * (如redirectTo或navigateBack或reLaunch到其他页面时)
+   */
+  this.on('unload', function(options) {
+    logger.verbose('页面要卸载了unload******', JSON.stringify(options))
+
+    var curUrl = options.url
+    // 发送onUnload事件
+    that.pushQueue('subscribe', {
+      url: curUrl,
+      handlerName: 'onUnload'
+    });
+
+    that.dog(curUrl);
   });
 
   // 设置屏幕旋转方向
@@ -569,6 +646,9 @@ function WebView (options) {
         webviewdepth -= 1;
         // dwebview.trigger('show', WebviewStatusPop)
         if (dwebview) {
+          logger.verbose('连续返回多个webview****************', dwebview.object.getCurrentUrl())
+          // 用dwebview代表被卸载的webview
+          dwebview.trigger('unload', {url: dwebview.object.getCurrentUrl()});
           // 开始注销
           logger.verbose('Webivew:[%s] , 开始destroy', dwebview.id);
           SYBEROS.destroy(dwebview.id);
@@ -603,7 +683,6 @@ WebView.prototype = SyberPlugin.prototype;
 
 WebView.prototype.onMessageReceived = function (message, webviewId) {
   logger.verbose('webview:[%s] ,onMessageReceived(): ', webviewId, typeof message, typeof message.data, message);
-  console.log('webview:[%s] ,onMessageReceived(): ', webviewId, typeof message, typeof message.data, message.data);
 
   var model;
   if (message && typeof message === 'object') {
@@ -612,7 +691,7 @@ WebView.prototype.onMessageReceived = function (message, webviewId) {
     model = JSON.parse(message);
   }
 
-  console.log('**********model**********', JSON.stringify(model));
+  logger.verbose('**********model**********', JSON.stringify(model));
 
   var handlerId = model.callbackId;
   var method = model.handlerName;
@@ -688,11 +767,12 @@ WebView.prototype.onSubscribe = function (handlerName, result) {
     this.trigger('reload', this.object);
     return;
   }
-  if (handlerName === 'onShow') {
+  // 第2个APP被唤起的时候，监听的onReady事件
+  if (handlerName === 'package') {
     var params = {};
     params.url = result.path;
     this.pushQueue('subscribe', {
-      handlerName: handlerName,
+      handlerName: "onReady",
       url: result.path,
       result: result
     });
@@ -835,4 +915,17 @@ function getLowerWebview () {
   }
   logger.verbose('getLowerWebview() : [ %d ]', idx);
   return idx;
+}
+
+/**
+ * 转换navigateBar的参数
+ */
+function getNavigateBarParams(params) {
+  var obj = {};
+  for (var key in params) {
+    var newKey = 'navigationBar' + key.substring(0, 1).toUpperCase() + key.substring(1);
+    logger.verbose('newKey-', newKey);
+    obj[newKey] = params[key];
+  }
+  return obj;
 }

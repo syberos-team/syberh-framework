@@ -61,7 +61,7 @@ CPage{
 
     //设置背景色
     function setBackgroundColor(color){
-        root.color = color;
+        swebview.backgroundColor = color;
     }
 
     // 展示navigatorBar
@@ -266,7 +266,7 @@ CPage{
             id: swebview
             focus: true
             // zoomFactor: 3.0
-            backgroundColor: "red"
+            // backgroundColor: "red"
             signal downLoadConfirmRequest
             property url curHoverUrl: ""
 
