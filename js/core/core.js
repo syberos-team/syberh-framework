@@ -19,8 +19,7 @@ function Syber (parent) {
     throw new Error('root 不存在');
   }
   this.option = {
-    defaultPlugins: ['alert', 'confirm', 'prompt', 'gtoast', 'toast', 'capture', 'system', 'filepicker', 'chooseImage', 'previewImage', 'qrcode']
-  }
+    defaultPlugins: ['alert', 'confirm', 'prompt', 'gtoast', 'toast', 'capture', 'system', 'filepicker', 'chooseImage', 'previewImage', 'qrcode', 'app']  }
 
   // add 内置 plugins
   this._addBuiltInPlugins();
@@ -239,7 +238,8 @@ Syber.prototype._addBuiltInPlugins = function () {
     filepicker: { proto: FilePicker },
     previewImage: { proto: PreviewImage },
     chooseImage: { proto: ChooseImage },
-    qrcode: { proto: Qrcode }
+    qrcode: { proto: Qrcode },
+    app: { proto: App }
   };
   if (!!list && isArray(list)) {
     for (var i = 0; i < list.length; i++) {
