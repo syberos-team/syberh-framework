@@ -504,6 +504,7 @@ CPage{
               webView.statusBarHoldEnabled = false
               gScreenInfo.setStatusBar(false);
           } else {
+              webView.statusBarHoldEnabled = true
               gScreenInfo.setStatusBar(true);
               //设置状态栏样式，取值为"black"，"white"，"transwhite"和"transblack"
               gScreenInfo.setStatusBarStyle("black");
@@ -536,6 +537,5 @@ CPage{
                 navigationBarCloseIconEnable: navigationBarCloseIconEnable
             })
         }
-
     }
 }
